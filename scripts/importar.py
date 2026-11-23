@@ -3,31 +3,21 @@ import psycopg2
 from datetime import datetime, timedelta
 
 # ── Configurações ──────────────────────────────────────────
-ARQUIVO = "dados/base_teste.xlsx"  #trocar caminho do dataset dos Senhores
+ARQUIVO = "/home/dario/Documentos/Code/bdd2/bd-integracao-dados-ads242n01/scripts/base_teste.xlsx"  #trocar caminho do dataset dos Senhores
 DB = {
     "host": "localhost", #de acordo com o host do SGBD dos Senhores
     "port": 5432,  #porta padrão do PostgreSQL a do MySQL 3006
-    "database": "postgres", #nome da data base do Senhores
-    "user": "postgres",   #utilizador dos senhores 
-    "password": "1234"   #senha do utilizador
+    "database": "atividade_bd", #nome da data base dos Senhores
+    "user": "adminbd2",   #utilizador dos senhores 
+    "password": "adminbd2"   #senha do utilizador
 }
 
-# ── Converte serial do Excel para data ─────────────────────
-def excel_para_data(valor):
-    try:
-        if pd.isna(valor):
-            return None
-        return (datetime(1899, 12, 30) + timedelta(days=int(valor))).date()
-    except:
-        return None
 
 # ── Conecta no banco ───────────────────────────────────────
 print("Conectando no PostgreSQL...")
 conn = psycopg2.connect(**DB)
 cur = conn.cursor()
 print("Conectado!\n")
-
-
 
 # 1. FORNECEDOR
 
@@ -53,9 +43,9 @@ for _, row in df.iterrows():
 conn.commit()
 print(f"  {len(df)} registros inseridos em fornecedor \n")
 
-
 # 2. PRODUTOS_FILIAL
 
+#
 print("Importando produtos_filial...")
 df = pd.read_excel(ARQUIVO, sheet_name="produtos_filial")
 df.columns = df.columns.str.strip()
@@ -64,10 +54,10 @@ for _, row in df.iterrows():
     try:
         cur.execute("""
             INSERT INTO public.produtos_filial
-                (filial_id, produto_id, descricao, estoque,
+                (filial_id, idproduto, descricao, estoque,
                  preco_unitario, preco_compra, preco_venda, idfornecedor)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            ON CONFLICT (filial_id, produto_id) DO NOTHING
+            ON CONFLICT (filial_id, idproduto) DO NOTHING
         """, (
             int(row["filial_id"]) if pd.notna(row["filial_id"]) else None,
             str(row["idproduto"]).strip(),
@@ -92,6 +82,10 @@ print(f"  {len(df)} registros inseridos em produtos_filial \n")
 print("Importando pedido_compra...")
 df = pd.read_excel(ARQUIVO, sheet_name="pedido_compra")
 df.columns = df.columns.str.strip()
+df["data_pedido"] = pd.to_datetime(df["data_pedido"], errors="coerce").dt.date
+df["data_pedido"] = df["data_pedido"].astype(object).where(df["data_pedido"].notna(), None)
+df["data_entrega"] = pd.to_datetime(df["data_entrega"], errors="coerce").dt.date
+df["data_entrega"] = df["data_entrega"].astype(object).where(df["data_entrega"].notna(), None)
 
 df = df.iloc[:, :12]
 df.columns = ["pedido_id","data_pedido","item","produto_id","descricao_produto",
@@ -110,14 +104,14 @@ for _, row in df.iterrows():
             ON CONFLICT (pedido_id, produto_id, item) DO NOTHING
         """, (
             float(row["pedido_id"]),
-            excel_para_data(row["data_pedido"]),
+            row["data_pedido"],
             float(row["item"]),
             str(row["produto_id"]).strip(),
             str(row["descricao_produto"]).strip() if pd.notna(row["descricao_produto"]) else None,
             float(row["ordem_compra"]) if pd.notna(row["ordem_compra"]) else 0,
             float(row["qtde_pedida"]) if pd.notna(row["qtde_pedida"]) else None,
             int(row["filial_id"]) if pd.notna(row["filial_id"]) else None,
-            excel_para_data(row["data_entrega"]),
+            row["data_entrega"],
             float(row["qtde_entregue"]) if pd.notna(row["qtde_entregue"]) else 0,
             float(row["qtde_pedida"]) - float(row["qtde_entregue"])
                 if pd.notna(row["qtde_pedida"]) and pd.notna(row["qtde_entregue"]) else 0,
@@ -139,6 +133,8 @@ print(f"  {inseridos} registros inseridos em pedido_compra \n")
 print("Importando entradas_mercadoria...")
 df = pd.read_excel(ARQUIVO, sheet_name="entradas_mercadoria")
 df.columns = df.columns.str.strip()
+df["data_entrada"] = pd.to_datetime(df["data_entrada"], errors="coerce").dt.date
+df["data_entrada"] = df["data_entrada"].astype(object).where(df["data_entrada"].notna(), None)
 
 for _, row in df.iterrows():
     try:
@@ -149,7 +145,7 @@ for _, row in df.iterrows():
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (ordem_compra, item, produto_id, nro_nfe) DO NOTHING
         """, (
-            excel_para_data(row["data_entrada"]),
+            row["data_entrada"],   	
             str(row["nro_nfe"]).strip(),
             float(row["item"]),
             str(row["produto_id"]).strip(),
@@ -173,6 +169,8 @@ print(f"  {len(df)} registros inseridos em entradas_mercadoria \n")
 print("Importando venda...")
 df = pd.read_excel(ARQUIVO, sheet_name="venda")
 df.columns = df.columns.str.strip()
+df["data_emissao"] = pd.to_datetime(df["data_emissao"], errors="coerce").dt.date
+df["data_emissao"] = df["data_emissao"].astype(object).where(df["data_emissao"].notna(), None)
 
 for _, row in df.iterrows():
     try:
@@ -184,7 +182,7 @@ for _, row in df.iterrows():
             ON CONFLICT (filial_id, venda_id, data_emissao, produto_id, item, horariomov) DO NOTHING
         """, (
             int(row["venda_id"]),
-            excel_para_data(row["data_emissao"]),
+            row["data_emissao"],
             str(row["horariomov"]).strip() if pd.notna(row["horariomov"]) else "00:00:00",
             str(row["produto_id"]).strip(),
             float(row["qtde_vendida"]) if pd.notna(row["qtde_vendida"]) else None,
@@ -201,9 +199,8 @@ for _, row in df.iterrows():
 conn.commit()
 print(f"  {len(df)} registros inseridos em venda \n")
 
-
 cur.close()
 conn.close()
 print("=" * 40)
 print("Importação concluída com sucesso! ")
-print("=" * 40)
+print("=" * 40) 
