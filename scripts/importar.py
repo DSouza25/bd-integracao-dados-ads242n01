@@ -82,15 +82,17 @@ print(f"  {len(df)} registros inseridos em produtos_filial \n")
 print("Importando pedido_compra...")
 df = pd.read_excel(ARQUIVO, sheet_name="pedido_compra")
 df.columns = df.columns.str.strip()
-df["data_pedido"] = pd.to_datetime(df["data_pedido"], errors="coerce").dt.date
-df["data_pedido"] = df["data_pedido"].astype(object).where(df["data_pedido"].notna(), None)
-df["data_entrega"] = pd.to_datetime(df["data_entrega"], errors="coerce").dt.date
-df["data_entrega"] = df["data_entrega"].astype(object).where(df["data_entrega"].notna(), None)
+
 
 df = df.iloc[:, :12]
 df.columns = ["pedido_id","data_pedido","item","produto_id","descricao_produto",
               "ordem_compra","qtde_pedida","filial_id","data_entrega",
               "qtde_entregue","preco_compra","fornecedor_id"]
+
+df["data_pedido"] = pd.to_datetime(df["data_pedido"], errors="coerce").dt.date
+df["data_pedido"] = df["data_pedido"].astype(object).where(df["data_pedido"].notna(), None)
+df["data_entrega"] = pd.to_datetime(df["data_entrega"], errors="coerce").dt.date
+df["data_entrega"] = df["data_entrega"].astype(object).where(df["data_entrega"].notna(), None)
 
 inseridos = 0
 for _, row in df.iterrows():

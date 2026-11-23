@@ -1,6 +1,10 @@
 # Parte 1: Documentação do processo de importação
 
 ## Ferramenta utilizada
+| Dbeaver | LibreOffice | VS Code |
+| Cloud AI | Editor de texto nativo Linux | MySQL
+| Github | 
+| --- | --- | --- |
 
 ## Estrutura da planilha
 
@@ -40,8 +44,8 @@
 
 | Tabela | Linhas na planilha | Linhas no banco |
 | --- | --- | --- |
-| fornecedor |  |  |
-| produtos_filial |  |  |
-| pedido_compra |  |  |
-| entradas_mercadoria |  |  |
-| venda |  |  |
+| fornecedor | 21 | 20 |
+| produtos_filial | 21 | 20 |
+| pedido_compra | 39 | 38 |
+| entradas_mercadoria | 21 | 20 |
+| venda | 34 | 33 |
