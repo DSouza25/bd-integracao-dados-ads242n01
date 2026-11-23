@@ -1,10 +1,8 @@
 # Parte 1: Documentação do processo de importação
 
 ## Ferramenta utilizada
-| Dbeaver | LibreOffice | VS Code |
-| Cloud AI | Editor de texto nativo Linux | MySQL
-| Github | 
-| --- | --- | --- |
+| Dbeaver | LibreOffice | VS Code | Cloud AI | Editor de texto nativo Linux | MySQL | Github |
+| --- | --- | --- | --- | --- | --- | --- |
 
 ## Estrutura da planilha
 
