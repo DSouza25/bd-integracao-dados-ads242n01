@@ -1,6 +1,11 @@
 # Parte 4: Roteiro de validação com o cliente (fevereiro/2025)
 
 ## 1. Pontos a validar
+| Faturamento mensal |
+| Quantidade de itens vendidos |
+| Item mais vendido (faturamento e quantidade) |
+| --- |
+
 
 ## 2. Técnicas para garantir exatidão e precisão
 
